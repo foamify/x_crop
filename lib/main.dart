@@ -158,107 +158,15 @@ class MainApp extends StatelessWidget {
                             return;
                           }
 
-                          final currPoint = switch (i) {
-                            0 => newQuad.point0,
-                            1 => newQuad.point1,
-                            2 => newQuad.point2,
-                            _ => newQuad.point3,
-                          };
-
-                          final opposingPoint = switch (i) {
-                            0 => newQuad.point2,
-                            1 => newQuad.point3,
-                            2 => newQuad.point0,
-                            _ => newQuad.point1,
-                          };
-
-                          var tripoints = outs.map((e) {
-                            final innerCurrPoint = switch (e.$1) {
-                              0 => outInner.point0,
-                              1 => outInner.point1,
-                              2 => outInner.point2,
-                              _ => outInner.point3,
-                            };
-                            final outInnerOpposite = switch (i) {
-                              0 => outInner.point2,
-                              1 => outInner.point3,
-                              2 => outInner.point0,
-                              _ => outInner.point1,
-                            };
-
-                            final outerEdge = switch (e.$1) {
-                              0 => outer.rect.topLeft,
-                              1 => outer.rect.topRight,
-                              2 => outer.rect.bottomRight,
-                              _ => outer.rect.bottomLeft,
-                            };
-                            print('isY:');
-                            print(innerCurrPoint.y < outer.rect.top ||
-                                innerCurrPoint.y > outer.rect.bottom);
-                            print('angle: ${getAngleFromPointsVec3(
-                              outInnerOpposite,
-                              innerCurrPoint,
-                            )}');
-                            return rotateVector(
-                              getTriangleFromLineAndTwoAngle(
-                                outInnerOpposite,
-                                outerEdge.toVector3(),
-                                getAngleFromPointsVec3(
-                                  outInnerOpposite,
-                                  innerCurrPoint,
-                                ),
-                                innerCurrPoint.y > outer.rect.top ||
-                                    innerCurrPoint.y < outer.rect.bottom,
-                              ),
-                              outer.rect.center.toVector3(),
-                              outer.angle,
-                            );
-                          }).toList();
-
-                          final snapPoint = tripoints.first;
-
-                          print(snapPoint);
-
-                          debugPoints.value = [
-                            // outer.rect.topLeft.toVector3(),
-                            // outer.rect.topRight.toVector3(),
-                            // outer.rect.bottomRight.toVector3(),
-                            // outer.rect.bottomLeft.toVector3(),
-                            // ...outer.innerQuad(newQuad).points,
-                            ...tripoints,
-                            // tripoints[outClosest.$1],
-                            ...outs.map((e) => e.$2),
-                            // innerCurrPoint
-                          ];
-
-                          switch (i) {
-                            case 0:
-                              point0 = snapPointToLine(initialQuad().point0,
-                                  initialQuad().point2, snapPoint);
-                            case 1:
-                              point1 = snapPointToLine(initialQuad().point1,
-                                  initialQuad().point3, snapPoint);
-                            case 2:
-                              point2 = snapPointToLine(initialQuad().point2,
-                                  initialQuad().point0, snapPoint);
-                            case 3:
-                              point3 = snapPointToLine(initialQuad().point3,
-                                  initialQuad().point1, snapPoint);
-                          }
-
-                          newQuad = i == 0 || i == 2
-                              ? QuadUtils.fromPoints02(
-                                  point0,
-                                  point2,
-                                  initialQuad().rect.center.toVector3(),
-                                  initialQuad().angle,
-                                )
-                              : QuadUtils.fromPoints13(
-                                  point1,
-                                  point3,
-                                  initialQuad().rect.center.toVector3(),
-                                  initialQuad().angle,
-                                );
+                          outerQuad.value = QuadUtils.fromPointsExpanded02(
+                            outer.copy.point0,
+                            outer.copy.point2,
+                            outer.copy.centerVec3,
+                            outer.copy.angle,
+                            outer.copy.angle,
+                            outer.copy.intersectInnerQuad(inner),
+                            outer.copy.size.aspectRatio,
+                          );
 
                           innerQuad.value = newQuad;
                         },
