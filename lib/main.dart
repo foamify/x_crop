@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
@@ -221,11 +222,77 @@ class MainApp extends StatelessWidget {
                     outer.point1,
                     outer.point2,
                     outer.point3,
-                  ].map(
-                    (e) => Positioned(
+                  ].mapIndexed(
+                    (i, e) => Positioned(
                       left: e.x - 5,
                       top: e.y - 5,
-                      child: const DebugPoint(),
+                      child: GestureDetector(
+
+                        onPanStart: (details) {
+                          initialPos.value = details.globalPosition;
+                          initialQuad.value = outer;
+                        },
+                        onPanUpdate: (details) {
+                          final delta = details.globalPosition - initialPos();
+
+                          var point0 = initialQuad().point0;
+                          var point1 = initialQuad().point1;
+                          var point2 = initialQuad().point2;
+                          var point3 = initialQuad().point3;
+
+                          switch (i) {
+                            case 0:
+                              point0 = snapPointToLine(
+                                  initialQuad().point0,
+                                  initialQuad().point2,
+                                  point0 + delta.toVector3());
+                            case 1:
+                              point1 = snapPointToLine(
+                                  initialQuad().point1,
+                                  initialQuad().point3,
+                                  point1 + delta.toVector3());
+                            case 2:
+                              point2 = snapPointToLine(
+                                  initialQuad().point2,
+                                  initialQuad().point0,
+                                  point2 + delta.toVector3());
+                            case 3:
+                              point3 = snapPointToLine(
+                                  initialQuad().point3,
+                                  initialQuad().point1,
+                                  point3 + delta.toVector3());
+                          }
+
+                          var newQuad = i == 0 || i == 2
+                              ? QuadUtils.fromPoints02(
+                                  point0,
+                                  point2,
+                                  initialQuad().rect.center.toVector3(),
+                                  initialQuad().angle,
+                                )
+                              : QuadUtils.fromPoints13(
+                                  point1,
+                                  point3,
+                                  initialQuad().rect.center.toVector3(),
+                                  initialQuad().angle,
+                                );
+
+                          var intersectInnerQuad = newQuad.intersectInnerQuad(inner);
+                          outerQuad.value = QuadUtils.fromPointsExpanded02SingleSide(
+                            newQuad.point0,
+                            newQuad.point2,
+                            initialQuad().centerVec3,
+                            newQuad.angle,
+                            newQuad.angle,
+                            intersectInnerQuad,
+                            newQuad.size.aspectRatio,
+                            inner.angle,
+                            i,
+                          );
+
+                        },
+                        child: const DebugPoint(),
+                      ),
                     ),
                   ),
                   // Rotation

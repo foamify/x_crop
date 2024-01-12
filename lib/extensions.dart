@@ -134,3 +134,56 @@ extension QuadEx on Quad {
 }
 
 typedef Sides = ({double bottom, double left, double right, double top});
+
+extension SidesEx on Sides {
+  bool get isAllZero => bottom == 0 && left == 0 && right == 0 && top == 0;
+  Sides get onlyBiggest {
+    final biggest = max(
+        max(bottom.abs(), left.abs()),
+        max(
+          right.abs(),
+          top.abs(),
+        ));
+    if (biggest == bottom.abs()) {
+      return (bottom: bottom, left: 0, right: 0, top: 0);
+    } else if (biggest == left.abs()) {
+      return (
+        bottom: 0,
+        left: left,
+        right: 0,
+        top: 0,
+      );
+    } else if (biggest == right.abs()) {
+      return (
+        bottom: 0,
+        left: 0,
+        right: right,
+        top: 0,
+      );
+    } else {
+      return (
+        bottom: 0,
+        left: 0,
+        right: 0,
+        top: top,
+      );
+    }
+  }
+
+  Sides get onlySmallest {
+    final smallest = min(
+        min(bottom.abs() != 0 ? bottom.abs() : double.infinity,
+            left.abs() != 0 ? left.abs() : double.infinity),
+        min(right.abs() != 0 ? right.abs() : double.infinity,
+            top.abs() != 0 ? top.abs() : double.infinity));
+    if (smallest == bottom.abs()) {
+      return (bottom: bottom, left: 0, right: 0, top: 0);
+    } else if (smallest == left.abs()) {
+      return (bottom: 0, left: left, right: 0, top: 0);
+    } else if (smallest == right.abs()) {
+      return (bottom: 0, left: 0, right: right, top: 0);
+    } else {
+      return (bottom: 0, left: 0, right: 0, top: top);
+    }
+  }
+}

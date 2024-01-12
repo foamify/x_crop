@@ -59,11 +59,11 @@ abstract class QuadUtils {
       p0Rotated.add(Vector3(expand.left, 0, 0));
 
       final y = expand.left / ratio / 2;
-
       p0Rotated.add(Vector3(0.0, y, 0));
       p2Rotated.add(Vector3(0.0, -y, 0));
     }
     if (expand.right != 0) {
+      print('expright');
       p2Rotated.add(Vector3(expand.right, 0, 0));
 
       final y = -expand.right / ratio / 2;
@@ -86,6 +86,103 @@ abstract class QuadUtils {
 
       p0Rotated.add(Vector3(x, 0, 0));
       p2Rotated.add(Vector3(-x, 0, 0));
+    }
+    final p1Rotated = Vector3(p2Rotated.x, p0Rotated.y, 0);
+    final p3Rotated = Vector3(p0Rotated.x, p2Rotated.y, 0);
+
+    return rotateQuad(Quad.points(p0Rotated, p1Rotated, p2Rotated, p3Rotated),
+        newAngle, origin.toOffset());
+  }
+
+  static Quad fromPointsExpanded02SingleSide(
+    Vector3 p0,
+    Vector3 p2,
+    Vector3 origin,
+    double oldAngle,
+    double newAngle,
+    Sides expand,
+    double ratio,
+    double innerAngle,
+    int handle,
+  ) {
+    final deltAngle = newAngle - innerAngle;
+
+    final p0Rotated = rotateVector(p0, origin, -oldAngle);
+    final p2Rotated = rotateVector(p2, origin, -oldAngle);
+    print(expand.left < expand.top);
+    if (expand.left != 0) {
+      final y = expand.left / ratio;
+
+      final x2 = expand.top * ratio;
+
+      final delT = expand.top - y;
+
+      if (expand.top == 0 || delT > 0) {
+        print('leftleft');
+        final x = expand.left;
+        p0Rotated.add(Vector3(x, y, 0));
+      } else if (x2 != y) {
+        print('lefttop');
+        final y2 = expand.top;
+
+        p0Rotated.add(Vector3(x2, y2, 0));
+      }
+      // p2Rotated.add(Vector3(0.0, y, 0));
+    } else if (expand.right != 0) {
+      // print('expright');
+      final y = -expand.right / ratio;
+
+      final x2 = expand.top * ratio;
+      final x3 = expand.bottom * ratio;
+
+      final delT = expand.top - y;
+
+      // print('delT: $delT');
+
+      // print(delT);
+      // print(delR);
+      print('deltangle: $deltAngle');
+
+      if (deltAngle < 0) {
+        print('rightbottom');
+        final y3 = expand.bottom;
+        p0Rotated.add(Vector3(-x3, -y3, 0));
+      } else if (expand.right < expand.top || delT > 0) {
+        print('rightright');
+        final x = expand.right;
+        p0Rotated.add(Vector3(0, deltAngle < 0 ? y : 0, 0));
+        p2Rotated.add(Vector3(x, deltAngle > 0 ? -y : 0, 0));
+      } else {
+        print('righttop');
+        final y2 = expand.top;
+
+        p0Rotated.add(Vector3(0, y2, 0));
+        p2Rotated.add(Vector3(-x2, 0, 0));
+      }
+    } else if (expand.top != 0) {
+      print('extopPUYRE');
+      print('angle: $deltAngle');
+
+      final x = expand.top * ratio;
+      final y = expand.top;
+
+      if ((handle == 1 || handle == 2)) {
+        print('topright');
+        p2Rotated.add(Vector3(-x, 0, 0));
+        p0Rotated.add(Vector3(0, y, 0));
+      } else {
+        print('topleft');
+        p0Rotated.add(Vector3(x, y, 0));
+        p2Rotated.add(Vector3(0, 0, 0));
+      }
+    } else if (expand.bottom != 0) {
+      print('expbotttom');
+
+      final x = -expand.bottom * ratio;
+      final y = expand.bottom;
+
+      p0Rotated.add(Vector3(0, 0, 0));
+      p2Rotated.add(Vector3(-x, y, 0));
     }
     final p1Rotated = Vector3(p2Rotated.x, p0Rotated.y, 0);
     final p3Rotated = Vector3(p0Rotated.x, p2Rotated.y, 0);
