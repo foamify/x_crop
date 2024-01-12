@@ -106,20 +106,20 @@ extension QuadEx on Quad {
     var deltaRight = 0.0;
     var deltaBottom = 0.0;
 
-    if (topLeft.dx > inner.left && bottomRight.dx > inner.right) {
+    if (topLeft.dx >= inner.left && bottomRight.dx >= inner.right) {
       deltaLeft = inner.left - rect.left;
-    } else if (bottomRight.dx < inner.right && topLeft.dx < inner.left) {
+    } else if (bottomRight.dx <= inner.right && topLeft.dx <= inner.left) {
       deltaRight = inner.right - rect.right;
-    } else if (topLeft.dx > inner.left && bottomRight.dx < inner.right) {
+    } else if (topLeft.dx >= inner.left && bottomRight.dx <= inner.right) {
       deltaLeft = inner.left - rect.left;
       deltaRight = inner.right - rect.right;
     }
 
-    if (topLeft.dy > inner.top && bottomRight.dy > inner.bottom) {
+    if (topLeft.dy >= inner.top && bottomRight.dy >= inner.bottom) {
       deltaTop = inner.top - rect.top;
-    } else if (bottomRight.dy < inner.bottom && topLeft.dy < inner.top) {
+    } else if (bottomRight.dy <= inner.bottom && topLeft.dy <= inner.top) {
       deltaBottom = inner.bottom - rect.bottom;
-    } else if (topLeft.dy > inner.top && bottomRight.dy < inner.bottom) {
+    } else if (topLeft.dy >= inner.top && bottomRight.dy <= inner.bottom) {
       deltaTop = inner.top - rect.top;
       deltaBottom = inner.bottom - rect.bottom;
     }

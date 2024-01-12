@@ -227,7 +227,6 @@ class MainApp extends StatelessWidget {
                       left: e.x - 5,
                       top: e.y - 5,
                       child: GestureDetector(
-
                         onPanStart: (details) {
                           initialPos.value = details.globalPosition;
                           initialQuad.value = outer;
@@ -277,8 +276,10 @@ class MainApp extends StatelessWidget {
                                   initialQuad().angle,
                                 );
 
-                          var intersectInnerQuad = newQuad.intersectInnerQuad(inner);
-                          outerQuad.value = QuadUtils.fromPointsExpanded02SingleSide(
+                          var intersectInnerQuad =
+                              newQuad.intersectInnerQuad(inner);
+                          outerQuad.value =
+                              QuadUtils.fromPointsExpanded02SingleSide(
                             newQuad.point0,
                             newQuad.point2,
                             initialQuad().centerVec3,
@@ -286,10 +287,8 @@ class MainApp extends StatelessWidget {
                             newQuad.angle,
                             intersectInnerQuad,
                             newQuad.size.aspectRatio,
-                            inner.angle,
                             i,
                           );
-
                         },
                         child: const DebugPoint(),
                       ),

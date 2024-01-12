@@ -101,117 +101,51 @@ abstract class QuadUtils {
     double newAngle,
     Sides expand,
     double ratio,
-    double innerAngle,
     int handle,
   ) {
-    final deltAngle = newAngle - innerAngle;
-
     final p0Rotated = rotateVector(p0, origin, -oldAngle);
     final p2Rotated = rotateVector(p2, origin, -oldAngle);
-    if (expand.left != 0) {
-      final y = expand.left / ratio;
-      final x2 = expand.top * ratio;
-      final x3 = expand.bottom * ratio;
-      final y3 = expand.bottom;
 
-      final delT = expand.top - y;
+    final xLeft = expand.left;
+    final yLeft = expand.left / ratio;
+    final xRight = expand.right;
+    final yRight = expand.right / ratio;
+    final yTop = expand.top;
+    final xTop = expand.top * ratio;
+    final yBottom = -expand.bottom;
+    final xBottom = -expand.bottom * ratio;
 
-      if (expand.top == 0 || delT > 0) {
-        final x = expand.left;
-        if (expand.bottom != 0) {
-          if (handle == 3) {
-            p0Rotated.add(Vector3(x, 0, 0));
-            p2Rotated.add(Vector3(0, -y, 0));
-          } else {
-            p0Rotated.add(Vector3(-x3, 0, 0));
-            p2Rotated.add(Vector3(0, y3, 0));
-          }
-        } else {
-          if (handle == 3) {
-            {
-              p0Rotated.add(Vector3(x, 0, 0));
-              p2Rotated.add(Vector3(0, -y, 0));
-            }
-          } else {
-            p0Rotated.add(Vector3(x, y, 0));
-          }
-        }
-      } else if (x2 != y) {
-        final y2 = expand.top;
-
-        p0Rotated.add(Vector3(x2, y2, 0));
-      }
-      // p2Rotated.add(Vector3(0.0, y, 0));
-    } else if (expand.right != 0) {
-      final y = -expand.right / ratio;
-
-      final x2 = expand.top * ratio;
-      final x3 = expand.bottom * ratio;
-      final y3 = expand.bottom;
-
-      final delT = expand.top - y;
-
-      if (deltAngle < 0 && expand.bottom != 0 && handle != 2) {
-        p2Rotated.add(Vector3(x3, y3, 0));
-      } else if (expand.right < expand.top || delT > 0) {
-        final x = expand.right;
-        if (expand.bottom != 0) {
-          if (handle == 2) {
-            p0Rotated.add(Vector3(0, 0, 0));
-            p2Rotated.add(Vector3(x, -y, 0));
-          } else {
-            p0Rotated.add(Vector3(0, 0, 0));
-            p2Rotated.add(Vector3(-x3, y3, 0));
-          }
-        } else {
-          final x = expand.right;
-          if (expand.bottom != 0) {
-            if (handle == 2) {
-              p0Rotated.add(Vector3(0, 0, 0));
-              p2Rotated.add(Vector3(x, y, 0));
-            } else {
-              p0Rotated.add(Vector3(0, 0, 0));
-              p2Rotated.add(Vector3(-x3, -y3, 0));
-            }
-          } else {
-            if (handle == 2) {
-              p0Rotated.add(Vector3(0, 0, 0));
-              p2Rotated.add(Vector3(x, -y, 0));
-            } else {
-              p0Rotated.add(Vector3(0, y, 0));
-              p2Rotated.add(Vector3(x, 0, 0));
-            }
-          }
-        }
+    if (handle == 0) {
+      if (xTop < xLeft) {
+        p0Rotated.x += xTop;
+        p0Rotated.y += yTop;
       } else {
-        final y2 = expand.top;
-
-        p0Rotated
-            .add(Vector3(handle == 0 ? x2 : 0, deltAngle > 0 ? y2 : y2, 0));
-        p2Rotated.add(Vector3(
-            handle == 0 ? 0 : -x2, deltAngle < 0 && handle == 2 ? -y2 : 0, 0));
+        p0Rotated.x += xLeft;
+        p0Rotated.y += yLeft;
       }
-    } else if (expand.top != 0) {
-      final x = expand.top * ratio;
-      final y = expand.top;
-
-      if ((handle == 1 || handle == 2) || deltAngle > 0) {
-        p2Rotated.add(Vector3(handle == 0 ? x : -x, 0, 0));
-        p0Rotated.add(Vector3(0, y, 0));
+    } else if (handle == 1) {
+      if (xTop != 0 && xTop.abs() > xRight.abs()) {
+        p2Rotated.x -= xTop;
+        p0Rotated.y += yTop;
       } else {
-        p0Rotated.add(Vector3(x, y, 0));
-        p2Rotated.add(Vector3(0, 0, 0));
+        p2Rotated.x += xRight;
+        p0Rotated.y -= yRight;
       }
-    } else if (expand.bottom != 0) {
-      final x = -expand.bottom * ratio;
-      final y = expand.bottom;
-
-      if (handle == 3) {
-        p0Rotated.add(Vector3(x, 0, 0));
-        p2Rotated.add(Vector3(0, y, 0));
+    } else if (handle == 2) {
+      if (xBottom != 0 && xBottom.abs() > xRight.abs()) {
+        p2Rotated.x -= xBottom;
+        p2Rotated.y -= yBottom;
       } else {
-        p0Rotated.add(Vector3(0, 0, 0));
-        p2Rotated.add(Vector3(-x, y, 0));
+        p2Rotated.x += xRight;
+        p2Rotated.y += yRight;
+      }
+    } else if (handle == 3) {
+      if (xBottom < xLeft) {
+        p0Rotated.x += xBottom;
+        p2Rotated.y += -yBottom;
+      } else {
+        p0Rotated.x += xLeft;
+        p2Rotated.y += -yLeft;
       }
     }
     final p1Rotated = Vector3(p2Rotated.x, p0Rotated.y, 0);
