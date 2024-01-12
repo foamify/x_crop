@@ -144,29 +144,27 @@ class MainApp extends StatelessWidget {
                                   initialQuad().angle,
                                 );
 
-                          final outInner = outer.innerQuad(newQuad);
-
                           final outs = newQuad.points.indexed
                               .where((element) =>
                                   element.$1 != (i + 2) % 4 &&
                                   !outer.contains(element.$2))
                               .toList();
 
-                          // print('outs: $outs');
-
                           if (outs.isEmpty) {
                             innerQuad.value = newQuad;
                             return;
                           }
 
+                          final outerCopy = outer.copy;
+
                           outerQuad.value = QuadUtils.fromPointsExpanded02(
-                            outer.copy.point0,
-                            outer.copy.point2,
-                            outer.copy.centerVec3,
-                            outer.copy.angle,
-                            outer.copy.angle,
-                            outer.copy.intersectInnerQuad(inner),
-                            outer.copy.size.aspectRatio,
+                            outerCopy.point0,
+                            outerCopy.point2,
+                            outerCopy.centerVec3,
+                            outerCopy.angle,
+                            outerCopy.angle,
+                            outerCopy.intersectInnerQuad(inner),
+                            outerCopy.size.aspectRatio,
                           );
 
                           innerQuad.value = newQuad;
