@@ -110,24 +110,32 @@ class MainApp extends StatelessWidget {
                           switch (i) {
                             case 0:
                               point0 = snapPointToLine(
-                                  initialQuad().point0,
-                                  initialQuad().point2,
-                                  point0 + delta.toVector3());
+                                initialQuad().point0,
+                                initialQuad().point2,
+                                point0 + delta.toVector3(),
+                                initialQuad().angle,
+                              );
                             case 1:
                               point1 = snapPointToLine(
-                                  initialQuad().point1,
-                                  initialQuad().point3,
-                                  point1 + delta.toVector3());
+                                initialQuad().point1,
+                                initialQuad().point3,
+                                point1 + delta.toVector3(),
+                                initialQuad().angle,
+                              );
                             case 2:
                               point2 = snapPointToLine(
-                                  initialQuad().point2,
-                                  initialQuad().point0,
-                                  point2 + delta.toVector3());
+                                initialQuad().point2,
+                                initialQuad().point0,
+                                point2 + delta.toVector3(),
+                                initialQuad().angle,
+                              );
                             case 3:
                               point3 = snapPointToLine(
-                                  initialQuad().point3,
-                                  initialQuad().point1,
-                                  point3 + delta.toVector3());
+                                initialQuad().point3,
+                                initialQuad().point1,
+                                point3 + delta.toVector3(),
+                                initialQuad().angle,
+                              );
                           }
 
                           var newQuad = i == 0 || i == 2
@@ -240,24 +248,32 @@ class MainApp extends StatelessWidget {
                           switch (i) {
                             case 0:
                               point0 = snapPointToLine(
-                                  initialQuad().point0,
-                                  initialQuad().point2,
-                                  point0 + delta.toVector3());
+                                initialQuad().point0,
+                                initialQuad().point2,
+                                point0 + delta.toVector3(),
+                                initialQuad().angle,
+                              );
                             case 1:
                               point1 = snapPointToLine(
-                                  initialQuad().point1,
-                                  initialQuad().point3,
-                                  point1 + delta.toVector3());
+                                initialQuad().point1,
+                                initialQuad().point3,
+                                point1 + delta.toVector3(),
+                                initialQuad().angle,
+                              );
                             case 2:
                               point2 = snapPointToLine(
-                                  initialQuad().point2,
-                                  initialQuad().point0,
-                                  point2 + delta.toVector3());
+                                initialQuad().point2,
+                                initialQuad().point0,
+                                point2 + delta.toVector3(),
+                                initialQuad().angle,
+                              );
                             case 3:
                               point3 = snapPointToLine(
-                                  initialQuad().point3,
-                                  initialQuad().point1,
-                                  point3 + delta.toVector3());
+                                initialQuad().point3,
+                                initialQuad().point1,
+                                point3 + delta.toVector3(),
+                                initialQuad().angle,
+                              );
                           }
 
                           var newQuad = i == 0 || i == 2

@@ -203,27 +203,57 @@ Quad rotateQuad(Quad quad, double angle, Offset origin) {
   return Quad.points(point0, point1, point2, point3);
 }
 
-Vector3 snapPointToLine(Vector3 end1, Vector3 end2, Vector3 point) {
-  final angle1 = getAngleFromPoints(end1.toOffset(), end2.toOffset()) + pi;
-  final angle2 = getAngleFromPoints(point.toOffset(), end2.toOffset()) + pi;
-  final end1IsLeft = end1.x < end2.x;
-  final end1IsTop = end1.y < end2.y;
+Vector3 snapPointToLine(
+  Vector3 end1,
+  Vector3 end2,
+  Vector3 point,
+  double quadAngle,
+) {
+  final center = (end1 + end2) / 2;
+
+  final end1Rot = rotateVector(end1, center, -quadAngle);
+  final end2Rot = rotateVector(end2, center, -quadAngle);
+  var pointRot = rotateVector(point, center, -quadAngle);
+
+  final angle1 = getAngleFromPoints(end2.toOffset(), end1.toOffset());
+
+  final end1IsLeft = end1Rot.x < end2Rot.x;
+  final end1IsTop = end1Rot.y < end2Rot.y;
+
+  pointRot = rotateVector(point, center, -quadAngle);
+
+  if (!end1IsLeft && pointRot.x < end2Rot.x) {
+    pointRot.x = end2Rot.x + 1;
+  } else if (end1IsLeft && pointRot.x > end2Rot.x) {
+    pointRot.x = end2Rot.x - 1;
+  }
+
+  if (!end1IsTop && pointRot.y < end2Rot.y) {
+    pointRot.y = end2Rot.y + 1;
+  } else if (end1IsTop && pointRot.y > end2Rot.y) {
+    pointRot.y = end2Rot.y - 1;
+  }
+
+  debugPoints.value = [
+    end1Rot,
+    end2Rot,
+    pointRot,
+  ];
+
+  final angle2 = getAngleFromPoints(end2.toOffset(), point.toOffset());
+  final deltAngle = angle2 % pi - angle1 % pi;
+  print(deltAngle / pi * 180);
+
   final pointSnap = getTriangleFromLineAndTwoAngle(
-    end2,
-    point,
-    angle1,
+    end2Rot,
+    pointRot,
+    getAngleFromPointsVec3(end2Rot, end1Rot),
     switch ((end1IsLeft, end1IsTop)) {
-      (false, true) || (true, false) => angle1 > angle2,
-      _ => angle1 < angle2,
+      (false, true) || (true, false) => deltAngle < 0,
+      _ => deltAngle > 0,
     },
   );
-
-  // debugPoints.value = [
-  //   // end1,
-  //   // end2,
-  //   pointSnap,
-  // ];
-  return pointSnap;
+  return rotateVector(pointSnap, center, quadAngle);
 }
 
 /// Calculate the third point of the triangle from two points and two angles
