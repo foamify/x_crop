@@ -86,6 +86,43 @@ extension QuadEx on Quad {
 
     return rotateVector(intersectPoint, Vector3.zero(), angle);
   }
+  
+
+  Vector3 moveDeltaOuterQuad(Quad quad) {
+    var intersectPoint = Vector3.zero();
+    final inner = innerQuad(quad);
+
+    // debugPoints.value = [
+    //   ...inner.points,
+    //   rect.topLeft.toVector3(),
+    //   rect.topRight.toVector3(),
+    //   rect.bottomRight.toVector3(),
+    //   rect.bottomLeft.toVector3(),
+    // ];
+
+    final topLeft = rect.topLeft;
+    final bottomRight = rect.bottomRight;
+
+    final deltaLeft = inner.left - rect.left;
+    final deltaTop = inner.top - rect.top;
+    final deltaRight = inner.right - rect.right;
+    final deltaBottom = inner.bottom - rect.bottom;
+
+    if (topLeft.dx > inner.left && bottomRight.dx > inner.right) {
+      intersectPoint.x = deltaRight;
+    } else if (bottomRight.dx < inner.right && topLeft.dx < inner.left) {
+      intersectPoint.x = deltaLeft;
+    }
+
+    if (topLeft.dy > inner.top && bottomRight.dy > inner.bottom) {
+      intersectPoint.y = deltaBottom;
+    } else if (bottomRight.dy < inner.bottom && topLeft.dy < inner.top) {
+      intersectPoint.y = deltaTop;
+    }
+
+    return rotateVector(intersectPoint, Vector3.zero(), angle);
+  }
+  
 
   Sides intersectInnerQuad(Quad quad) {
     final inner = innerQuad(quad);

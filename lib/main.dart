@@ -67,7 +67,24 @@ class MainApp extends StatelessWidget {
                 return Positioned.fill(
                   child: ClipPath(
                     clipper: QuadClipper(quad: innerQuad()),
-                    child: MouseRegion(
+                    child: GestureDetector(
+                      onPanStart: (details) {
+                        initialPos.value = details.globalPosition;
+                        initialQuad.value = innerQuad();
+                      },
+                      onPanUpdate: (details) {
+                        final delta = details.delta;
+                        var newQuad = innerQuad().copy
+                          ..translate(
+                            delta.toVector3(),
+                          );
+
+                        newQuad = newQuad.copy
+                          ..translate(newQuad.moveDeltaOuterQuad(outerQuad()));
+                        innerQuad.forceUpdate(
+                          newQuad,
+                        );
+                      },
                       child: CustomPaint(
                         painter: QuadPainter(
                           quad: innerQuad(),
