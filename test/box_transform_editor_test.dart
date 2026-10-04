@@ -261,7 +261,8 @@ void main() {
 
     final widthCenter =
         tester.getCenter(find.byKey(const ValueKey('dimension-width')));
-    expect(widthCenter.dy, lessThan(325));
+    expect(widthCenter.dy, closeTo(325, 1e-9));
+    expect(widthCenter.dx, lessThan(350));
 
     await tester.enterText(
         find.descendant(
@@ -323,7 +324,8 @@ void main() {
         tester.getRect(find.byKey(const ValueKey('dimension-width')));
     final heightRect =
         tester.getRect(find.byKey(const ValueKey('dimension-height')));
-    expect(handleRect.top - widthRect.bottom, greaterThanOrEqualTo(12 - 1e-9));
+    expect(handleRect.left - widthRect.right, greaterThanOrEqualTo(12 - 1e-9));
+    expect(widthRect.center.dy, closeTo(handleRect.center.dy, 1e-9));
     expect(heightRect.top - handleRect.bottom, greaterThanOrEqualTo(12 - 1e-9));
 
     await tester.enterText(

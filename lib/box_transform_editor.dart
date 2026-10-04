@@ -624,15 +624,15 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
           return box
               .localToWorld(Offset(hx * (halfW - safe - fw / 2), hy * halfH));
         }
-        return box.localToWorld(Offset(hx * max(0.0, halfW - safe - fw / 2),
-            hy * (halfH + safe + fh / 2)));
+        return box.localToWorld(
+            Offset(hx * (halfW + safe + fw / 2), hy * halfH));
       }
       if (halfH - _dashInner - safe >= fh) {
         return box
             .localToWorld(Offset(hx * halfW, hy * (halfH - safe - fh / 2)));
       }
-      return box.localToWorld(Offset(
-          hx * (halfW + safe + fw / 2), hy * max(0.0, halfH - safe - fh / 2)));
+      return box.localToWorld(
+          Offset(hx * halfW, hy * (halfH + safe + fh / 2)));
     }
     if (handle.horizontal != 0) {
       final fitsInside = box.size.width >= fw + 2 * safe;
