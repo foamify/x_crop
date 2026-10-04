@@ -271,7 +271,7 @@ void main() {
         '300');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     final rightHandle =
         tester.getCenter(find.byKey(const ValueKey('handle-face-right')));
@@ -279,6 +279,7 @@ void main() {
     await tester.pump();
     await lockHandle(tester, ResizeHandle.right, rightHandle);
     await unlockHandle(tester, ResizeHandle.right, rightHandle);
+    await tester.pump(const Duration(milliseconds: 300));
 
     final midWidthCenter =
         tester.getCenter(find.byKey(const ValueKey('dimension-width')));
@@ -303,7 +304,7 @@ void main() {
     await tester.enterText(field, '300');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     final widthCenter =
         tester.getCenter(find.byKey(const ValueKey('dimension-width')));
@@ -335,7 +336,7 @@ void main() {
         '300');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     final rightHandle =
         tester.getCenter(find.byKey(const ValueKey('handle-face-right')));
@@ -404,7 +405,7 @@ void main() {
     await tester.enterText(field, '123.5');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     expect(tester.widget<TextField>(field).controller!.text, '123.5');
     await gesture.removePointer();
@@ -680,7 +681,7 @@ void main() {
         tester.getCenter(find.byKey(const ValueKey('handle-face-right')));
     expect(rightCenter.dx, closeTo(450, 1e-9));
 
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
     final leftFinal =
         tester.getCenter(find.byKey(const ValueKey('handle-face-left')));
     expect(leftFinal.dx, closeTo(250, 1e-9));
@@ -712,7 +713,7 @@ void main() {
     expect(mid.dy, greaterThan(301));
     expect(mid.dy, lessThan(400));
 
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 200));
     final end = tester.getCenter(find.byKey(face));
     expect(end.dx, closeTo(499, 1e-9));
     expect(end.dy, closeTo(400, 1e-9));
@@ -743,7 +744,7 @@ void main() {
 
     await lockHandle(tester, ResizeHandle.topLeft, midLeft);
     await unlockHandle(tester, ResizeHandle.topLeft, midLeft);
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     final afterLeft =
         tester.getCenter(find.byKey(const ValueKey('handle-face-left')));
@@ -802,6 +803,52 @@ void main() {
     await gesture.removePointer();
   });
 
+  testWidgets('dimension fields show W and H corner badges', (tester) async {
+    await tester.pumpWidget(buildEditor());
+    final gesture = await hoverAt(tester, const Offset(350, 325));
+    await lockHandle(tester, ResizeHandle.topLeft, const Offset(350, 325));
+    await unlockHandle(tester, ResizeHandle.topLeft, const Offset(350, 325));
+
+    final widthField = find.byKey(const ValueKey('dimension-width'));
+    final heightField = find.byKey(const ValueKey('dimension-height'));
+    expect(
+        find.descendant(of: widthField, matching: find.text('W')),
+        findsOneWidget);
+    expect(
+        find.descendant(of: heightField, matching: find.text('H')),
+        findsOneWidget);
+
+    final fieldRect = tester.getRect(widthField);
+    final badgeRect =
+        tester.getRect(find.descendant(of: widthField, matching: find.text('W')));
+    expect(badgeRect.center.dx,
+        closeTo(fieldRect.right, 1));
+    expect(badgeRect.center.dy,
+        closeTo(fieldRect.bottom, 1));
+
+    expect(find.text('R'), findsNothing);
+    await gesture.removePointer();
+  });
+
+  testWidgets('badge does not affect field container layout', (tester) async {
+    await tester.pumpWidget(buildEditor());
+    final gesture = await hoverAt(tester, const Offset(350, 325));
+    await lockHandle(tester, ResizeHandle.topLeft, const Offset(350, 325));
+    await unlockHandle(tester, ResizeHandle.topLeft, const Offset(350, 325));
+
+    final fieldRect =
+        tester.getRect(find.byKey(const ValueKey('dimension-width')));
+    final textRect = tester.getRect(find.descendant(
+        of: find.byKey(const ValueKey('dimension-width')),
+        matching: find.byType(TextField)));
+
+    expect(fieldRect.height, 36);
+    expect(textRect.center.dy, closeTo(fieldRect.center.dy, 0.5));
+    expect(textRect.left, greaterThanOrEqualTo(fieldRect.left));
+    expect(textRect.right, lessThanOrEqualTo(fieldRect.right));
+    await gesture.removePointer();
+  });
+
   testWidgets('rotation field width adapts to its text', (tester) async {
     await tester.pumpWidget(buildEditor());
     final gesture = await hoverAt(tester, const Offset(400, 301));
@@ -843,7 +890,7 @@ void main() {
         '300');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     Future<Rect> clickMidpoint(
         ResizeHandle handle, String face, String field) async {
@@ -852,6 +899,7 @@ void main() {
       await tester.pump();
       await lockHandle(tester, handle, position);
       await unlockHandle(tester, handle, position);
+      await tester.pump(const Duration(milliseconds: 300));
       return tester.getRect(find.byKey(ValueKey(field)));
     }
 
@@ -890,6 +938,87 @@ void main() {
     await gesture.removePointer();
   });
 
+  testWidgets('field position animates smoothly when placement flips',
+      (tester) async {
+    await tester.pumpWidget(buildEditor());
+    final gesture = await hoverAt(tester, const Offset(450, 400));
+    await lockHandle(tester, ResizeHandle.right, const Offset(450, 400));
+    await unlockHandle(tester, ResizeHandle.right, const Offset(450, 400));
+
+    const fieldKey = ValueKey('dimension-width');
+    final field = find.descendant(
+      of: find.byKey(fieldKey),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(field, '200');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    final inside = tester.getCenter(find.byKey(fieldKey));
+    final insideHandle =
+        tester.getCenter(find.byKey(const ValueKey('handle-face-right')));
+    expect(inside.dx, lessThan(insideHandle.dx));
+
+    await tester.enterText(field, '10');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.pump(const Duration(milliseconds: 60));
+
+    final mid = tester.getCenter(find.byKey(fieldKey));
+    expect(mid.dx, lessThan(inside.dx));
+
+    await gesture.moveTo(
+        tester.getCenter(find.byKey(const ValueKey('handle-face-right'))));
+    await tester.pump(const Duration(milliseconds: 600));
+    final settled = tester.getCenter(find.byKey(fieldKey));
+    expect(settled.dx, lessThan(mid.dx));
+    final handleRect =
+        tester.getRect(find.byKey(const ValueKey('handle-face-right')));
+    final settledRect = tester.getRect(find.byKey(fieldKey));
+    expect(settledRect.left - handleRect.right,
+        greaterThanOrEqualTo(12 - 1e-9));
+    expect(settled.dy, closeTo(400, 1e-9));
+    await gesture.removePointer();
+  });
+
+  testWidgets('field tracks the box exactly during normal motion',
+      (tester) async {
+    await tester.pumpWidget(buildEditor());
+    final gesture = await hoverAt(tester, const Offset(450, 400));
+    await lockHandle(tester, ResizeHandle.right, const Offset(450, 400));
+    await unlockHandle(tester, ResizeHandle.right, const Offset(450, 400));
+
+    const fieldKey = ValueKey('dimension-width');
+    const faceKey = ValueKey('handle-face-right');
+    final field = find.descendant(
+      of: find.byKey(fieldKey),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(field, '200');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    // Let the box animation and the resulting outside->inside mirror
+    // glide finish completely.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await gesture.moveTo(tester.getCenter(find.byKey(faceKey)));
+
+    // Shrinking 200 -> 150 keeps the field inside the right edge, so it
+    // must follow the live handle position with no animation trail.
+    await tester.enterText(field, '150');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+
+    final face = tester.getCenter(find.byKey(faceKey));
+    final rect = tester.getRect(find.byKey(fieldKey));
+    expect(rect.center.dx, closeTo(face.dx - 19 - rect.width / 2, 0.5));
+    await gesture.removePointer();
+  });
+
   testWidgets('midpoint field falls outside when the edge cannot fit it',
       (tester) async {
     await tester.pumpWidget(buildEditor());
@@ -904,7 +1033,7 @@ void main() {
     await tester.enterText(field, '10');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     final fieldRect =
         tester.getRect(find.byKey(const ValueKey('dimension-width')));
@@ -929,7 +1058,7 @@ void main() {
     await tester.enterText(field, '90');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     final face = find.byKey(const ValueKey('handle-face-right'));
     final transforms = find.descendant(
@@ -964,7 +1093,7 @@ void main() {
     await tester.enterText(field, '90');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 600));
 
     final handlePosition =
         tester.getCenter(find.byKey(const ValueKey('handle-face-right')));

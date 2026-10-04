@@ -49,6 +49,8 @@ double _adaptiveFieldWidth(String text, {required bool rotation}) {
   );
 }
 
+typedef _FieldSlot = ({int edge, int inset, int along});
+
 class BoxTransformEditor extends StatefulWidget {
   const BoxTransformEditor(
       {super.key, this.config = const BoxTransformConfig()});
@@ -60,10 +62,11 @@ class BoxTransformEditor extends StatefulWidget {
 }
 
 class _BoxTransformEditorState extends State<BoxTransformEditor>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const _hideDelay = Duration(milliseconds: 120);
   static const _fieldFadeInDuration = Duration(milliseconds: 140);
   static const _fieldFadeOutDuration = Duration(milliseconds: 260);
+  static const _fieldMoveDuration = Duration(milliseconds: 200);
   static const _boxAnimationDuration = Duration(milliseconds: 240);
 
   final GlobalKey _rootKey = GlobalKey();
@@ -71,6 +74,8 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
 
   final Map<ResizeHandle, int> _hovered = {};
   ResizeHandle? _fieldHandle;
+  _FieldSlot? _widthSlot;
+  _FieldSlot? _heightSlot;
   ResizeHandle? _activeHandle;
   Offset? _virtualPointer;
   Offset? _resizePointer;
@@ -99,6 +104,12 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
   late final AnimationController _boxAnimationController;
   TransformBox? _boxAnimationStart;
   TransformBox? _boxAnimationTarget;
+  late final AnimationController _widthMoveController;
+  late final AnimationController _heightMoveController;
+  Offset? _widthMoveFrom;
+  Offset? _heightMoveFrom;
+  Offset? _widthShown;
+  Offset? _heightShown;
 
   @override
   void initState() {
@@ -107,6 +118,10 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
     _boxAnimationController =
         AnimationController(vsync: this, duration: _boxAnimationDuration)
           ..addListener(_tickBoxAnimation);
+    _widthMoveController = AnimationController(
+        vsync: this, duration: _fieldMoveDuration);
+    _heightMoveController = AnimationController(
+        vsync: this, duration: _fieldMoveDuration);
     _widthFocus.addListener(_syncFieldText);
     _heightFocus.addListener(_syncFieldText);
     _rotationFocus.addListener(_syncRotationText);
@@ -144,6 +159,8 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
     _fieldRemovalTimer?.cancel();
     _rotationFieldRemovalTimer?.cancel();
     _boxAnimationController.dispose();
+    _widthMoveController.dispose();
+    _heightMoveController.dispose();
     _widthController.dispose();
     _heightController.dispose();
     _widthFocus.dispose();
@@ -233,7 +250,11 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
               _activeHandle != handle &&
               _fieldHandle == handle &&
               !_fieldsVisible) {
-            setState(() => _fieldHandle = null);
+            setState(() {
+              _fieldHandle = null;
+              _widthSlot = null;
+              _heightSlot = null;
+            });
           }
         });
       }
@@ -602,14 +623,35 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
     final fields = <Widget>[];
     if (handle.horizontal != 0) {
       fields.add(_buildField(box, handle, width: true));
+    } else {
+      _widthSlot = null;
     }
     if (handle.vertical != 0) {
       fields.add(_buildField(box, handle, width: false));
+    } else {
+      _heightSlot = null;
     }
     return fields;
   }
 
-  Offset _fieldCenter(
+  static bool _isMirrorSlot(_FieldSlot a, _FieldSlot b) {
+    var flips = 0;
+    for (final pair in [
+      (a.edge, b.edge),
+      (a.inset, b.inset),
+      (a.along, b.along),
+    ]) {
+      if (pair.$1 == pair.$2) continue;
+      if (pair.$1 == -pair.$2) {
+        flips++;
+      } else {
+        return false;
+      }
+    }
+    return flips > 0;
+  }
+
+  ({Offset center, _FieldSlot slot}) _fieldPlacement(
       TransformBox box, ResizeHandle handle, bool widthField, Size fieldSize) {
     const safe = _handleHalf + _fieldHandleGap;
     final fw = fieldSize.width;
@@ -621,31 +663,49 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
     if (handle.isCorner) {
       if (widthField) {
         if (halfW - _dashInner - safe >= fw) {
-          return box
-              .localToWorld(Offset(hx * (halfW - safe - fw / 2), hy * halfH));
+          return (
+            center: box.localToWorld(
+                Offset(hx * (halfW - safe - fw / 2), hy * halfH)),
+            slot: (edge: hy, inset: 0, along: -hx),
+          );
         }
-        return box.localToWorld(
-            Offset(hx * (halfW + safe + fw / 2), hy * halfH));
+        return (
+          center: box.localToWorld(
+              Offset(hx * (halfW + safe + fw / 2), hy * halfH)),
+          slot: (edge: hy, inset: 0, along: hx),
+        );
       }
       if (halfH - _dashInner - safe >= fh) {
-        return box
-            .localToWorld(Offset(hx * halfW, hy * (halfH - safe - fh / 2)));
+        return (
+          center: box.localToWorld(
+              Offset(hx * halfW, hy * (halfH - safe - fh / 2))),
+          slot: (edge: hx, inset: 0, along: -hy),
+        );
       }
-      return box.localToWorld(
-          Offset(hx * halfW, hy * (halfH + safe + fh / 2)));
+      return (
+        center: box.localToWorld(
+            Offset(hx * halfW, hy * (halfH + safe + fh / 2))),
+        slot: (edge: hx, inset: 0, along: hy),
+      );
     }
     if (handle.horizontal != 0) {
       final fitsInside = box.size.width >= fw + 2 * safe;
       final x = fitsInside
           ? hx * (halfW - safe - fw / 2)
           : hx * (halfW + safe + fw / 2);
-      return box.localToWorld(Offset(x, 0));
+      return (
+        center: box.localToWorld(Offset(x, 0)),
+        slot: (edge: hx, inset: fitsInside ? 1 : -1, along: 0),
+      );
     }
     final fitsInside = box.size.height >= fh + 2 * safe;
     final y = fitsInside
         ? hy * (halfH - safe - fh / 2)
         : hy * (halfH + safe + fh / 2);
-    return box.localToWorld(Offset(0, y));
+    return (
+      center: box.localToWorld(Offset(0, y)),
+      slot: (edge: hy, inset: fitsInside ? 1 : -1, along: 0),
+    );
   }
 
   Widget _buildField(TransformBox box, ResizeHandle handle,
@@ -654,10 +714,44 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
     final focusNode = width ? _widthFocus : _heightFocus;
     final size = Size(_adaptiveFieldWidth(textController.text, rotation: false),
         _fieldHeight);
-    final center = _fieldCenter(box, handle, width, size);
-    return Positioned(
-      left: center.dx,
-      top: center.dy,
+    final placement = _fieldPlacement(box, handle, width, size);
+    final slot = placement.slot;
+    final previousSlot = width ? _widthSlot : _heightSlot;
+    final move = width ? _widthMoveController : _heightMoveController;
+    if (slot != previousSlot) {
+      if (previousSlot != null && _isMirrorSlot(previousSlot, slot)) {
+        final from = (width ? _widthShown : _heightShown) ?? placement.center;
+        if (width) {
+          _widthMoveFrom = from;
+        } else {
+          _heightMoveFrom = from;
+        }
+        move.forward(from: 0);
+      } else {
+        move.stop();
+      }
+      if (width) {
+        _widthSlot = slot;
+      } else {
+        _heightSlot = slot;
+      }
+    }
+    final center = placement.center;
+    return AnimatedBuilder(
+      animation: move,
+      builder: (context, child) {
+        final from = width ? _widthMoveFrom : _heightMoveFrom;
+        final shown = move.isAnimating && from != null
+            ? Offset.lerp(from, center,
+                Curves.easeOutCubic.transform(move.value))!
+            : center;
+        if (width) {
+          _widthShown = shown;
+        } else {
+          _heightShown = shown;
+        }
+        return Positioned(left: shown.dx, top: shown.dy, child: child!);
+      },
       child: FractionalTranslation(
         translation: const Offset(-0.5, -0.5),
         child: IgnorePointer(
@@ -681,6 +775,7 @@ class _BoxTransformEditorState extends State<BoxTransformEditor>
                 readOnly: _activeHandle != null,
                 onChanged: (_) => setState(() {}),
                 onSubmitted: (_) => _submit(width: width),
+                badge: width ? 'W' : 'H',
               ),
             ),
           ),
@@ -751,6 +846,7 @@ class _DimensionField extends StatelessWidget {
     required this.readOnly,
     required this.onChanged,
     required this.onSubmitted,
+    required this.badge,
   });
 
   final TextEditingController controller;
@@ -758,15 +854,41 @@ class _DimensionField extends StatelessWidget {
   final bool readOnly;
   final ValueChanged<String> onChanged;
   final ValueChanged<String> onSubmitted;
+  final String badge;
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: controller,
-      builder: (_, value, child) => SizedBox(
-        width: _adaptiveFieldWidth(value.text, rotation: false),
-        height: _fieldHeight,
-        child: child,
+      builder: (_, value, child) => Stack(
+        clipBehavior: Clip.none,
+        children: [
+          SizedBox(
+            width: _adaptiveFieldWidth(value.text, rotation: false),
+            height: _fieldHeight,
+            child: child,
+          ),
+          Positioned(
+            right: -6.5,
+            bottom: -6.5,
+            child: Container(
+              width: 13,
+              height: 13,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xE6141424),
+                borderRadius: BorderRadius.circular(4),
+                border:
+                    Border.all(color: const Color(0xFF6C5CE7), width: 1),
+              ),
+              child: Text(
+                badge,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 8, height: 1),
+              ),
+            ),
+          ),
+        ],
       ),
       child: _buildFieldChrome(),
     );
