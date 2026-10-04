@@ -822,9 +822,9 @@ void main() {
     final badgeRect =
         tester.getRect(find.descendant(of: widthField, matching: find.text('W')));
     expect(badgeRect.center.dx,
-        closeTo(fieldRect.right, 1));
+        closeTo(fieldRect.left, 1));
     expect(badgeRect.center.dy,
-        closeTo(fieldRect.bottom, 1));
+        closeTo(fieldRect.top, 1));
 
     expect(find.text('R'), findsNothing);
     await gesture.removePointer();

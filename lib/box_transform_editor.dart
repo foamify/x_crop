@@ -869,8 +869,8 @@ class _DimensionField extends StatelessWidget {
             child: child,
           ),
           Positioned(
-            right: -6.5,
-            bottom: -6.5,
+            left: -6.5,
+            top: -6.5,
             child: Container(
               width: 13,
               height: 13,
