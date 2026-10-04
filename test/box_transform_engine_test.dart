@@ -304,6 +304,22 @@ void main() {
     );
   });
 
+  test('normalizeRotation wraps into [-pi, pi)', () {
+    expect(normalizeRotation(3 * pi / 2), closeTo(-pi / 2, 1e-9));
+  });
+
+  test('setRotation normalizes and preserves the rest of the box', () {
+    final controller =
+        BoxTransformController(initialBox: startBox(), config: config);
+    controller.value = startBox().copyWith(flipX: true, flipY: true);
+    controller.setRotation(3 * pi / 2);
+    expect(controller.value.rotation, closeTo(-pi / 2, 1e-9));
+    expect(controller.value.center, startBox().center);
+    expect(controller.value.size, startBox().size);
+    expect(controller.value.flipX, isTrue);
+    expect(controller.value.flipY, isTrue);
+  });
+
   test('produced boxes are finite with nonnegative size, even from zero size',
       () {
     const zero = TransformBox(center: Offset(2, 4), size: Size.zero);

@@ -51,6 +51,10 @@ class BoxTransformController extends ValueNotifier<TransformBox> {
     value = session.update(pointer);
   }
 
+  void setRotation(double rotation) {
+    value = value.copyWith(rotation: normalizeRotation(rotation));
+  }
+
   void setDimensions(
     ResizeHandle handle, {
     double? width,

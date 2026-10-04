@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'model.dart';
 
-double _normalizeAngle(double angle) => (angle + pi) % (2 * pi) - pi;
+double normalizeRotation(double angle) => (angle + pi) % (2 * pi) - pi;
 
 TransformBox resizeBoxToDimensions(
   TransformBox box,
@@ -52,8 +52,8 @@ class RotateSession {
 
   TransformBox update(Offset pointer) {
     final currentAngle = (pointer - _box.center).direction;
-    final delta = _normalizeAngle(currentAngle - _startAngle);
-    return _box.copyWith(rotation: _normalizeAngle(_box.rotation + delta));
+    final delta = normalizeRotation(currentAngle - _startAngle);
+    return _box.copyWith(rotation: normalizeRotation(_box.rotation + delta));
   }
 }
 
