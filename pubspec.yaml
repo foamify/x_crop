@@ -7,12 +7,8 @@ environment:
   sdk: '>=3.3.0-174.3.beta <4.0.0'
 
 dependencies:
-  collection: ^1.18.0
   flutter:
     sdk: flutter
-  signals: ^2.1.10
-  vector_math: ^2.1.4
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
