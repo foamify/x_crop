@@ -6,6 +6,30 @@ import 'model.dart';
 
 double _normalizeAngle(double angle) => (angle + pi) % (2 * pi) - pi;
 
+TransformBox resizeBoxToDimensions(
+  TransformBox box,
+  ResizeHandle handle, {
+  double? width,
+  double? height,
+  Size minimumSize = Size.zero,
+}) {
+  final hx = handle.horizontal;
+  final hy = handle.vertical;
+  final newWidth =
+      hx != 0 && width != null ? max(width, minimumSize.width) : box.size.width;
+  final newHeight = hy != 0 && height != null
+      ? max(height, minimumSize.height)
+      : box.size.height;
+  final localCenter = Offset(
+    hx * (newWidth - box.size.width) / 2,
+    hy * (newHeight - box.size.height) / 2,
+  );
+  return box.copyWith(
+    center: box.center + rotateOffset(localCenter, box.rotation),
+    size: Size(newWidth, newHeight),
+  );
+}
+
 class MoveSession {
   MoveSession(TransformBox box, Offset pointer)
       : _box = box,

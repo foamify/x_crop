@@ -51,6 +51,20 @@ class BoxTransformController extends ValueNotifier<TransformBox> {
     value = session.update(pointer);
   }
 
+  void setDimensions(
+    ResizeHandle handle, {
+    double? width,
+    double? height,
+  }) {
+    value = resizeBoxToDimensions(
+      value,
+      handle,
+      width: width,
+      height: height,
+      minimumSize: config.minimumSize,
+    );
+  }
+
   void endGesture() {
     _moveSession = null;
     _resizeSession = null;

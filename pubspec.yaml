@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  pointer_lock:
+    git:
+      url: https://github.com/helgoboss/pointer_lock.git
+      ref: 742cd7289c603f92dadd632a1aece66f7f6e9ee1
 dev_dependencies:
   flutter_test:
     sdk: flutter

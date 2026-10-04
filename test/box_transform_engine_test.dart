@@ -244,6 +244,59 @@ void main() {
     expectFiniteBox(result);
   });
 
+  test('resizeBoxToDimensions applies typed corner size', () {
+    final result = resizeBoxToDimensions(
+      startBox(),
+      ResizeHandle.topRight,
+      width: 6,
+      height: 10,
+    );
+    expect(result.size, sizeCloseTo(const Size(6, 10)));
+    expect(result.center, offsetCloseTo(const Offset(3, 3)));
+    expect(result.rotation, startBox().rotation);
+    expect(result.flipX, isFalse);
+    expect(result.flipY, isFalse);
+  });
+
+  test('resizeBoxToDimensions ignores inactive dimensions', () {
+    final result = resizeBoxToDimensions(
+      startBox(),
+      ResizeHandle.right,
+      width: 6,
+      height: 100,
+    );
+    expect(result.size, sizeCloseTo(const Size(6, 8)));
+    expect(result.center, offsetCloseTo(const Offset(3, 4)));
+  });
+
+  test('resizeBoxToDimensions keeps opposite corner fixed when rotated', () {
+    const box = TransformBox(
+        center: Offset(10, 10), size: Size(4, 8), rotation: pi / 2);
+    final oppositeBefore = box.localToWorld(const Offset(-2, 4));
+    final result = resizeBoxToDimensions(
+      box,
+      ResizeHandle.topRight,
+      width: 6,
+      height: 10,
+    );
+    final oppositeAfter = result.localToWorld(const Offset(-3, 5));
+    expect(oppositeAfter, offsetCloseTo(oppositeBefore));
+    expect(result.rotation, closeTo(pi / 2, 1e-9));
+    expect(result.flipX, isFalse);
+    expect(result.flipY, isFalse);
+  });
+
+  test('resizeBoxToDimensions clamps to configured minimum', () {
+    final result = resizeBoxToDimensions(
+      startBox(),
+      ResizeHandle.topRight,
+      width: 1,
+      height: 1,
+      minimumSize: const Size(2, 3),
+    );
+    expect(result.size, sizeCloseTo(const Size(2, 3)));
+  });
+
   test('equal transform configurations use value equality', () {
     expect(
       const BoxTransformConfig(minimumSize: Size(1, 2)),
